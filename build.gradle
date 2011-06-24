@@ -1,0 +1,39 @@
+apply plugin: 'java'
+apply plugin: 'maven'
+apply plugin: 'eclipse'
+
+version = '1.0.3-SNAPSHOT'
+group = 'pl.solr.swork'
+
+repositories {
+    mavenLocal()
+    mavenCentral()
+    mavenRepo urls: ['file://' + (rootProject.file('lib')).getPath().replace('\\', '/')]
+}
+
+dependencies {
+        compile 'log4j:log4j:1.2.16'
+        compile 'org.slf4j:slf4j-api:1.5.6'
+        compile 'org.slf4j:slf4j-log4j12:1.5.6'
+        compile 'com.google.guava:guava:r09'
+        testCompile 'org.mockito:mockito-core:1.8.5'
+        testCompile 'org.springframework:spring-test:3.0.5.RELEASE'
+        testCompile 'junit:junit:4.8.2'
+
+}
+
+task sourcesJar(type: Jar, dependsOn:classes) { 
+     classifier = 'sources' 
+     from sourceSets.main.allSource 
+} 
+
+task javadocJar(type: Jar, dependsOn:javadoc) { 
+     classifier = 'javadoc' 
+     from javadoc.destinationDir 
+} 
+
+artifacts { 
+     archives sourcesJar 
+     archives javadocJar 
+} 
+
