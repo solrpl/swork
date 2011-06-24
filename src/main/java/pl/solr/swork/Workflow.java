@@ -42,8 +42,11 @@ public class Workflow<InputModel, OutputModel, StateModel> {
 			throw new RuntimeException("Workflow should contain outputStages");
 		}
 		
+		int i = 1;
 		while(true) {
 			int executed = processStages(input);
+			LOG.debug("Processed workflow pass: " + i + " " + state);
+			i++;
 			if (waitingStages.size() == 0) {
 				break;
 			}
@@ -54,7 +57,7 @@ public class Workflow<InputModel, OutputModel, StateModel> {
 						.append(" * ")
 						.append(stage.getClass().getName())
 						.append(" [")
-						.append(Joiner.on(",").join(stage.supported()))
+						.append(Joiner.on(",").join(stage.consumes()))
 						.append("]\n");
 				}
 				LOG.error("Not every stage of workflow was executed.\n"
@@ -83,7 +86,7 @@ public class Workflow<InputModel, OutputModel, StateModel> {
 	private int processStages(InputModel input) {
 		Collection<Stage<InputModel, StateModel>> executed = Lists.newArrayList();
 		for (Stage<InputModel, StateModel> s : waitingStages) {
-			if (state.compatible(s.supported())) {
+			if (state.compatible(s.consumes())) {
 				state.add(s.process(input));
 				executed.add(s);
 			}
@@ -93,7 +96,7 @@ public class Workflow<InputModel, OutputModel, StateModel> {
 		state.commit(); //state cannot be changed without commit after loop
 		return executed.size();
 	}
-	
+
 	private OutputModel processOutput(InputModel input) {
 		for (OutputStage<InputModel, OutputModel> o : outputStages) {
 			OutputModel model = o.process(input);

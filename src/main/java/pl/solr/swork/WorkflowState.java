@@ -2,6 +2,7 @@ package pl.solr.swork;
 
 import java.util.Collection;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 
 public class WorkflowState<StateModel> {
@@ -26,6 +27,11 @@ public class WorkflowState<StateModel> {
 	public void commit() {
 		current.addAll(tempState);
 		tempState.clear();		
+	}
+	
+	@Override
+	public String toString() {
+		return "WorkflowState: [" + Joiner.on(",").join(current) + "]";
 	}
 
 }

@@ -4,6 +4,6 @@ public interface Stage<InputType, StateModel> {
 	
 	StateModel[] process(InputType input);
 
-	StateModel[] supported();
+	StateModel[] consumes();
 
 }
