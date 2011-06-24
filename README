@@ -1,1 +1,22 @@
 This is a *very* simple framework for workflow.
+
+Goals:
+ * simple
+ * programmer-friendliness - most bugs detected on compile time
+
+Usage:
+
+		Collection<Stage<YourRequest, YourResponse>> stages = ...
+		YourRequest request = ...
+		
+		Workflow<YourRequest, YourResponse, YourStateModel> workflow = new Workflow<YourRequest, YourResponse, YourStateModel>();
+
+		workflow.addAllStages(stages);
+		workflow.addOutput(new ConvertRequestResponseOutputStage<YourRequest, YourResponse>());
+		
+		YourResponse response = workflow.process(request);
+
+		
+Todo:
+ * branches
+ * state achieved when all contributors were executed
