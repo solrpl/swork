@@ -47,6 +47,26 @@ public class SimpleTest {
 		//TODO order verification by listener
 		
 	}
+
+	@Test
+	public void bootMultipleStepsWithExternal() {
+		
+		Workflow<BaseInputModel, BaseOutputModel , States> workflow = new Workflow<BaseInputModel, BaseOutputModel, States>();
+		workflow.addListener(new SimpleWorkflowListener());
+		workflow.addStage(new MiddleStepC());
+		workflow.addStage(new MiddleStepA());
+		workflow.addStage(new MiddleStepD());
+		workflow.addOutput(new BaseOutputStep());
+		BaseInputModel input = new BaseInputModel();
+		Collection<States> states = workflow.proceed(input);
+		//TODO verify state
+		states = workflow.proceed(input, States.AFTER_B);
+		//TODO verify state
+		BaseOutputModel output = workflow.convert(input);
+		assertNotNull(output);
+		//TODO order verification by listener
+		
+	}
 	
 	public class SimpleWorkflowListener implements WorkflowListener<BaseInputModel, States> {
 

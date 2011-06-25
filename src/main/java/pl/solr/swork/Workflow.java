@@ -40,6 +40,32 @@ public class Workflow<InputModel, OutputModel, StateModel> {
 	private static final Logger LOG = LoggerFactory.getLogger(Workflow.class);
 	
 	
+	public Collection<StateModel> proceed(final InputModel input) {
+		int i = 1;
+		while(true) {
+			int executed = processStages(input);
+			LOG.debug("Processed workflow pass: " + i + " " + state);
+			i++;
+			if (executed == 0) {
+				break;
+			}
+		}
+		return state.getState();
+	}
+	
+	public Collection<StateModel> proceed(final InputModel input, final StateModel model) {
+		state.add(model).commit();
+		return proceed(input);
+	}
+	
+	public OutputModel convert(final InputModel input) {
+		if (waitingStages.size() != 0) {
+			errorNotEmpty();
+		}
+		return processOutput(input);
+	}
+
+	
 	/**
 	 * Main method for processing argument by the workflow.
 	 * @param input input argument
@@ -50,30 +76,23 @@ public class Workflow<InputModel, OutputModel, StateModel> {
 			throw new RuntimeException("Workflow should contain outputStages");
 		}
 		
-		int i = 1;
-		while(true) {
-			int executed = processStages(input);
-			LOG.debug("Processed workflow pass: " + i + " " + state);
-			i++;
-			if (waitingStages.size() == 0) {
-				break;
-			}
-			if (executed == 0) {
-				StringBuilder waitingList = new StringBuilder();
-				for (Stage<InputModel, StateModel> stage : waitingStages) {
-					waitingList
-						.append(" * ")
-						.append(stage.getClass().getName())
-						.append(" [")
-						.append(Joiner.on(",").join(stage.consumes()))
-						.append("]\n");
-				}
-				LOG.error("Not every stage of workflow was executed.\n"
-						+ "The following stages are waiting:\n" + waitingList);
-				throw new RuntimeException("Not every stage executed.");				
-			}
+		proceed(input);
+		return convert(input);
+	}
+	
+	private void errorNotEmpty() {
+		StringBuilder waitingList = new StringBuilder();
+		for (Stage<InputModel, StateModel> stage : waitingStages) {
+			waitingList
+			.append(" * ")
+			.append(stage.getClass().getName())
+			.append(" [")
+			.append(Joiner.on(",").join(stage.consumes()))
+			.append("]\n");
 		}
-		return processOutput(input);
+		LOG.error("Not every stage of workflow was executed.\n"
+				+ "The following stages are waiting:\n" + waitingList);
+		throw new RuntimeException("Not every stage executed.");									
 	}
 	
 	public Workflow<InputModel, OutputModel, StateModel> addStage(final Stage<InputModel, StateModel> stage) {
