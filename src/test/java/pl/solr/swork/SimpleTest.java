@@ -2,7 +2,11 @@ package pl.solr.swork;
 
 import static org.junit.Assert.assertNotNull;
 
+import java.util.Collection;
+
 import org.junit.Test;
+
+import com.google.common.collect.Lists;
 
 public class SimpleTest {
 
@@ -66,9 +70,9 @@ public class SimpleTest {
 			return new States[] {  };
 		}
 		
-		public States[] processStage(BaseInputModel input) {
+		public Collection<States> processStage(BaseInputModel input) {
 			System.out.println("middleStepA executed");
-			return new States[] { States.AFTER_A };
+			return Lists.newArrayList(States.AFTER_A);
 		}
 		
 	}
@@ -79,9 +83,9 @@ public class SimpleTest {
 			return new States[] { States.AFTER_A };
 		}
 		
-		public States[] processStage(BaseInputModel input) {
+		public Collection<States> processStage(BaseInputModel input) {
 			System.out.println("middleStepB executed");
-			return new States[] { States.AFTER_B };
+			return Lists.newArrayList(States.AFTER_B);
 		}
 	
 	}
@@ -92,9 +96,9 @@ public class SimpleTest {
 			return new States[] {  States.AFTER_A,  States.AFTER_B};
 		}
 		
-		public States[] processStage(BaseInputModel input) {
+		public Collection<States> processStage(BaseInputModel input) {
 			System.out.println("middleStepC executed");
-			return new States[] {  States.AFTER_C };
+			return Lists.newArrayList(States.AFTER_C);
 		}
 	
 	}
@@ -102,12 +106,12 @@ public class SimpleTest {
 	public class MiddleStepD implements Stage<BaseInputModel, States> {
 
 		public States[] consumes() {
-			return new States[] { States.AFTER_B};
+			return new States[] { States.AFTER_B };
 		}
 		
-		public States[] processStage(BaseInputModel input) {
+		public Collection<States> processStage(BaseInputModel input) {
 			System.out.println("middleStepD executed");
-			return new States[] { };
+			return Lists.newArrayList();
 		}
 			
 	}

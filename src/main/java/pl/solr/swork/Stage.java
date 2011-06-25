@@ -1,8 +1,10 @@
 package pl.solr.swork;
 
+import java.util.Collection;
+
 public interface Stage<InputType, StateModel> {
 	
-	StateModel[] processStage(InputType input);
+	Collection<StateModel> processStage(InputType input);
 
 	StateModel[] consumes();
 

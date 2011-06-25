@@ -19,7 +19,7 @@ public class WorkflowState<StateModel> {
 		return false;
 	}
 
-	public WorkflowState<StateModel> add(StateModel[] states) {
+	public WorkflowState<StateModel> addAll(Collection<StateModel> states) {
 		tempState.addAll(Lists.newArrayList(states));
 		return this;
 	}

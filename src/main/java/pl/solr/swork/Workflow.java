@@ -33,7 +33,12 @@ public class Workflow<InputModel, OutputModel, StateModel> {
 	/** listeners for worflow events. */
 	private Collection<WorkflowListener<InputModel, StateModel>> listeners = Lists.newArrayList();
 	
-	private static final Logger LOG = LoggerFactory.getLogger(Workflow.class); 
+	/** execution strategy for stages. */
+	private WorkflowPhaseExecutionStrategy<InputModel, StateModel> workflowPhaseExecutionStrategy = new SerialWorkflowPhaseExecutionStrategy<InputModel, StateModel>(); 
+	
+	/** logger. */
+	private static final Logger LOG = LoggerFactory.getLogger(Workflow.class);
+	
 	
 	/**
 	 * Main method for processing argument by the workflow.
@@ -92,20 +97,17 @@ public class Workflow<InputModel, OutputModel, StateModel> {
 	}
 	
 	private int processStages(InputModel input) {
-		Collection<Stage<InputModel, StateModel>> executed = Lists.newArrayList();
+		Collection<Stage<InputModel, StateModel>> toExecute = Lists.newArrayList();
 		for (Stage<InputModel, StateModel> s : waitingStages) {
 			if (state.compatible(s.consumes())) {
-				state.add(s.processStage(input));
-				for (WorkflowListener<InputModel, StateModel> listener : listeners) {
-					listener.processedStage(s);
-				}
-				executed.add(s);
+				toExecute.add(s);
 			}
 		}
-		executedStages.addAll(executed);
-		waitingStages.removeAll(executed);
+		state.addAll(workflowPhaseExecutionStrategy.execute(toExecute, input, listeners));
+		executedStages.addAll(toExecute);
+		waitingStages.removeAll(toExecute);
 		state.commit(); //state cannot be changed without commit after loop
-		return executed.size();
+		return toExecute.size();
 	}
 
 	private OutputModel processOutput(InputModel input) {
@@ -117,6 +119,5 @@ public class Workflow<InputModel, OutputModel, StateModel> {
 		}
 		throw new RuntimeException("Not output stage.");
 	}
-
 
 }
