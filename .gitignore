@@ -1,1 +1,4 @@
-\.classpath
+.classpath
+.project
+bin
+build
