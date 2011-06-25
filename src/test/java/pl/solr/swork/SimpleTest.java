@@ -32,6 +32,7 @@ public class SimpleTest {
 	public void bootMultipleSteps() {
 		
 		Workflow<BaseInputModel, BaseInputModel, States> workflow = new Workflow<BaseInputModel, BaseInputModel, States>();
+		workflow.addListener(new SimpleWorkflowListener());
 		workflow.addStage(new MiddleStepC());
 		workflow.addStage(new MiddleStepA());
 		workflow.addStage(new MiddleStepB());
@@ -39,6 +40,15 @@ public class SimpleTest {
 		workflow.addOutput(new ShortCircuitOutputStage<BaseInputModel>());
 		BaseInputModel output = workflow.process(new BaseInputModel());
 		assertNotNull(output);
+		//TODO order verification by listener
+		
+	}
+	
+	public class SimpleWorkflowListener implements WorkflowListener<BaseInputModel, States> {
+
+		public void processedStage(Stage<BaseInputModel, States> stage) {
+			System.err.println(stage);
+		}
 		
 	}
 	
@@ -56,7 +66,7 @@ public class SimpleTest {
 			return new States[] {  };
 		}
 		
-		public States[] process(BaseInputModel input) {
+		public States[] processStage(BaseInputModel input) {
 			System.out.println("middleStepA executed");
 			return new States[] { States.AFTER_A };
 		}
@@ -69,7 +79,7 @@ public class SimpleTest {
 			return new States[] { States.AFTER_A };
 		}
 		
-		public States[] process(BaseInputModel input) {
+		public States[] processStage(BaseInputModel input) {
 			System.out.println("middleStepB executed");
 			return new States[] { States.AFTER_B };
 		}
@@ -82,7 +92,7 @@ public class SimpleTest {
 			return new States[] {  States.AFTER_A,  States.AFTER_B};
 		}
 		
-		public States[] process(BaseInputModel input) {
+		public States[] processStage(BaseInputModel input) {
 			System.out.println("middleStepC executed");
 			return new States[] {  States.AFTER_C };
 		}
@@ -95,7 +105,7 @@ public class SimpleTest {
 			return new States[] { States.AFTER_B};
 		}
 		
-		public States[] process(BaseInputModel input) {
+		public States[] processStage(BaseInputModel input) {
 			System.out.println("middleStepD executed");
 			return new States[] { };
 		}

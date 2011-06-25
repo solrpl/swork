@@ -2,7 +2,7 @@ package pl.solr.swork;
 
 public interface Stage<InputType, StateModel> {
 	
-	StateModel[] process(InputType input);
+	StateModel[] processStage(InputType input);
 
 	StateModel[] consumes();
 

@@ -29,6 +29,9 @@ public class Workflow<InputModel, OutputModel, StateModel> {
 	
 	/** current state for workflow. */
 	private WorkflowState<StateModel> state = new WorkflowState<StateModel>();
+
+	/** listeners for worflow events. */
+	private Collection<WorkflowListener<InputModel, StateModel>> listeners = Lists.newArrayList();
 	
 	private static final Logger LOG = LoggerFactory.getLogger(Workflow.class); 
 	
@@ -81,13 +84,21 @@ public class Workflow<InputModel, OutputModel, StateModel> {
 	public Workflow<InputModel, OutputModel, StateModel> addOutput(OutputStage<InputModel, OutputModel> output) {
 		this.outputStages.add(output);
 		return this;
-	}	
+	}
+	
+	public Workflow<InputModel, OutputModel, StateModel> addListener(WorkflowListener<InputModel, StateModel> listener) {
+		this.listeners .add(listener);
+		return this;
+	}
 	
 	private int processStages(InputModel input) {
 		Collection<Stage<InputModel, StateModel>> executed = Lists.newArrayList();
 		for (Stage<InputModel, StateModel> s : waitingStages) {
 			if (state.compatible(s.consumes())) {
-				state.add(s.process(input));
+				state.add(s.processStage(input));
+				for (WorkflowListener<InputModel, StateModel> listener : listeners) {
+					listener.processedStage(s);
+				}
 				executed.add(s);
 			}
 		}

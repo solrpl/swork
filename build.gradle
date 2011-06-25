@@ -37,3 +37,9 @@ artifacts {
      archives javadocJar 
 } 
 
+uploadArchives {
+    repositories.mavenDeployer {
+        repository(url: "file://localhost/home/negativ/Projekty/Dom/GitHub/maven-repository/")
+    }
+}
+
