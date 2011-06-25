@@ -24,9 +24,19 @@ public class WorkflowState<StateModel> {
 		return this;
 	}
 
+	public WorkflowState<StateModel> add(final StateModel state) {
+		tempState.add(state);
+		return this;
+	}
+	
+	
 	public void commit() {
 		current.addAll(tempState);
 		tempState.clear();		
+	}
+	
+	public Collection<StateModel> getState() {
+		return Lists.newArrayList(current);
 	}
 	
 	@Override

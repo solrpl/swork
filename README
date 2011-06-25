@@ -6,6 +6,8 @@ Goals:
 
 Usage:
 
+ 1. Automatic transition
+
 		Collection<Stage<YourRequest, YourResponse>> stages = ...
 		YourRequest request = ...
 		
@@ -16,6 +18,25 @@ Usage:
 		
 		YourResponse response = workflow.process(request);
 
+
+ 2. SemiAutomatic
+ 
+ 		Collection<Stage<YourRequest, YourResponse>> stages = ...
+		YourRequest request = ...
+		
+		Workflow<YourRequest, YourResponse, YourStateModel> workflow = new Workflow<YourRequest, YourResponse, YourStateModel>();
+
+		workflow.addAllStages(stages);
+		workflow.addOutput(new ConvertRequestResponseOutputStage<YourRequest, YourResponse>());
+		
+		Collection<YourStateModel> state = workflow.proceed(request);
+		// check state and contiuue processing
+		...
+		Collection<YourStateModel> state = workflow.proceed(request, YourStateModel.STATE_X);
+		
+		// check state - should be final state
+		...
+        YourResponse response = workflow.convert(request);
 		
 Todo:
  * branches
