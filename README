@@ -1,9 +1,12 @@
-This is a *very* simple framework for workflow within the meansing of converting input object into
+This is a *very* simple framework for workflow within the meaning of converting input object into
 output object in several steps.
 
 Goals:
  * simple
  * programmer-friendliness - most bugs detected on compile time
+ 
+ Features:
+ * subworkflows - workflow can be used as component in other workflow
 
 Usage:
 
