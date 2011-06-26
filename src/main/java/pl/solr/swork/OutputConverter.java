@@ -1,6 +1,6 @@
 package pl.solr.swork;
 
-public interface OutputStage<InputModel, OutputModel> {
+public interface OutputConverter<InputModel, OutputModel> {
 
 	OutputModel process(InputModel model);
 }

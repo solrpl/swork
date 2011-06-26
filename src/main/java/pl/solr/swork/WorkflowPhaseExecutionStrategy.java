@@ -13,7 +13,7 @@ import java.util.Collection;
  */
 public interface WorkflowPhaseExecutionStrategy<InputModel, StateModel> {
 
-	Collection<StateModel> execute(final Collection<Stage<InputModel, StateModel>> toExecute, 
+	Collection<StateModel> execute(final Collection<Enricher<InputModel, StateModel>> toExecute, 
 									final InputModel input,
 									final Collection<WorkflowListener<InputModel, StateModel>> listeners);
 }

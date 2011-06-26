@@ -18,14 +18,14 @@ import com.google.common.collect.Lists;
  * @param <StateModel> possible states for the workflow
  */
 public class Workflow<InputModel, OutputModel, StateModel> {
-	/** remaining stages in workflow. */
-	private Collection<Stage<InputModel, StateModel>> waitingStages = Lists.newArrayList();
+	/** remaining enrichers in workflow. */
+	private Collection<Enricher<InputModel, StateModel>> waitingEnrichers = Lists.newArrayList();
 	
-	/** processed stages in workflow. */
-	private Collection<Stage<InputModel, StateModel>> executedStages = Lists.newArrayList();
+	/** processed enrichers in workflow. */
+	private Collection<Enricher<InputModel, StateModel>> executedEnrichers = Lists.newArrayList();
 
 	/** output processors for conversion from input model to output model. */
-	private Collection<OutputStage<InputModel, OutputModel>> outputStages = Lists.newArrayList();
+	private Collection<OutputConverter<InputModel, OutputModel>> outputConverters = Lists.newArrayList();
 	
 	/** current state for workflow. */
 	private WorkflowState<StateModel> state = new WorkflowState<StateModel>();
@@ -33,17 +33,17 @@ public class Workflow<InputModel, OutputModel, StateModel> {
 	/** listeners for worflow events. */
 	private Collection<WorkflowListener<InputModel, StateModel>> listeners = Lists.newArrayList();
 	
-	/** execution strategy for stages. */
+	/** execution strategy for enrichers. */
 	private WorkflowPhaseExecutionStrategy<InputModel, StateModel> workflowPhaseExecutionStrategy = new SerialWorkflowPhaseExecutionStrategy<InputModel, StateModel>(); 
 	
 	/** logger. */
 	private static final Logger LOG = LoggerFactory.getLogger(Workflow.class);
 	
 	
-	public Collection<StateModel> proceed(final InputModel input) {
+	public Collection<StateModel> enrich(final InputModel input) {
 		int i = 1;
 		while(true) {
-			int executed = processStages(input);
+			int executed = processEnrichers(input);
 			LOG.debug("Processed workflow pass: " + i + " " + state);
 			i++;
 			if (executed == 0) {
@@ -53,16 +53,16 @@ public class Workflow<InputModel, OutputModel, StateModel> {
 		return state.getState();
 	}
 	
-	public Collection<StateModel> proceed(final InputModel input, final StateModel model) {
+	public Collection<StateModel> enrich(final InputModel input, final StateModel model) {
 		state.add(model).commit();
-		return proceed(input);
+		return enrich(input);
 	}
 	
 	public OutputModel convert(final InputModel input) {
-		if (waitingStages.size() != 0) {
+		if (waitingEnrichers.size() != 0) {
 			errorNotEmpty();
 		}
-		return processOutput(input);
+		return processOutputConverters(input);
 	}
 
 	
@@ -71,42 +71,42 @@ public class Workflow<InputModel, OutputModel, StateModel> {
 	 * @param input input argument
 	 * @return object returned by workflow
 	 */
-	public OutputModel process(final InputModel input) {		
-		if (outputStages.size() == 0) {
-			throw new RuntimeException("Workflow should contain outputStages");
+	public OutputModel enrichAndConvert(final InputModel input) {		
+		if (outputConverters.size() == 0) {
+			throw new RuntimeException("Workflow should contain outputConverters");
 		}
 		
-		proceed(input);
+		enrich(input);
 		return convert(input);
 	}
 	
 	private void errorNotEmpty() {
 		StringBuilder waitingList = new StringBuilder();
-		for (Stage<InputModel, StateModel> stage : waitingStages) {
+		for (Enricher<InputModel, StateModel> enricher : waitingEnrichers) {
 			waitingList
 			.append(" * ")
-			.append(stage.getClass().getName())
+			.append(enricher.getClass().getName())
 			.append(" [")
-			.append(Joiner.on(",").join(stage.consumes()))
+			.append(Joiner.on(",").join(enricher.consumes()))
 			.append("]\n");
 		}
-		LOG.error("Not every stage of workflow was executed.\n"
-				+ "The following stages are waiting:\n" + waitingList);
-		throw new RuntimeException("Not every stage executed.");									
+		LOG.error("Not every enricher of workflow was executed.\n"
+				+ "The following enricher are waiting:\n" + waitingList);
+		throw new RuntimeException("Not every enricher executed.");									
 	}
 	
-	public Workflow<InputModel, OutputModel, StateModel> addStage(final Stage<InputModel, StateModel> stage) {
-		this.waitingStages.add(stage);
+	public Workflow<InputModel, OutputModel, StateModel> addEnricher(final Enricher<InputModel, StateModel> enricher) {
+		this.waitingEnrichers.add(enricher);
 		return this;
 	}
 	
-	public Workflow<InputModel, OutputModel, StateModel> addAllStages(final Collection<Stage<InputModel, StateModel>> stages) {
-		this.waitingStages.addAll(stages);
+	public Workflow<InputModel, OutputModel, StateModel> addAllEnrichers(final Collection<Enricher<InputModel, StateModel>> enrichers) {
+		this.waitingEnrichers.addAll(enrichers);
 		return this;
 	}
 	
-	public Workflow<InputModel, OutputModel, StateModel> addOutput(OutputStage<InputModel, OutputModel> output) {
-		this.outputStages.add(output);
+	public Workflow<InputModel, OutputModel, StateModel> addOutputConverter(OutputConverter<InputModel, OutputModel> output) {
+		this.outputConverters.add(output);
 		return this;
 	}
 	
@@ -115,28 +115,28 @@ public class Workflow<InputModel, OutputModel, StateModel> {
 		return this;
 	}
 	
-	private int processStages(InputModel input) {
-		Collection<Stage<InputModel, StateModel>> toExecute = Lists.newArrayList();
-		for (Stage<InputModel, StateModel> s : waitingStages) {
+	private int processEnrichers(InputModel input) {
+		Collection<Enricher<InputModel, StateModel>> toExecute = Lists.newArrayList();
+		for (Enricher<InputModel, StateModel> s : waitingEnrichers) {
 			if (state.compatible(s.consumes())) {
 				toExecute.add(s);
 			}
 		}
 		state.addAll(workflowPhaseExecutionStrategy.execute(toExecute, input, listeners));
-		executedStages.addAll(toExecute);
-		waitingStages.removeAll(toExecute);
+		executedEnrichers.addAll(toExecute);
+		waitingEnrichers.removeAll(toExecute);
 		state.commit(); //state cannot be changed without commit after loop
 		return toExecute.size();
 	}
 
-	private OutputModel processOutput(InputModel input) {
-		for (OutputStage<InputModel, OutputModel> o : outputStages) {
+	private OutputModel processOutputConverters(InputModel input) {
+		for (OutputConverter<InputModel, OutputModel> o : outputConverters) {
 			OutputModel model = o.process(input);
 			if (model != null) {
 				return model;
 			}
 		}
-		throw new RuntimeException("Not output stage.");
+		throw new RuntimeException("Not output converter.");
 	}
 
 }
