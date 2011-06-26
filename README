@@ -1,4 +1,5 @@
-This is a *very* simple framework for workflow.
+This is a *very* simple framework for workflow within the meansing of converting input object into
+output object in several steps.
 
 Goals:
  * simple
@@ -6,33 +7,40 @@ Goals:
 
 Usage:
 
+There are two base definitions:
+ * enricher - object capable to enrich input object. For example context may be enriched by 
+ information about user and his permissions.
+ 
+ * converter - object capable to convert input object to output object. For example request object
+ can be converted to response object.
+
  1. Automatic transition
 
-		Collection<Stage<YourRequest, YourResponse>> stages = ...
+		Collection<Stage<YourRequest, YourResponse>> enrichers = ...
 		YourRequest request = ...
 		
 		Workflow<YourRequest, YourResponse, YourStateModel> workflow = new Workflow<YourRequest, YourResponse, YourStateModel>();
 
-		workflow.addAllStages(stages);
-		workflow.addOutput(new ConvertRequestResponseOutputStage<YourRequest, YourResponse>());
+		workflow.addAllEnrichers(enrichers);
+		workflow.addOutputConverter(new ConvertRequestResponseOutputConverter<YourRequest, YourResponse>());
 		
 		YourResponse response = workflow.process(request);
 
 
  2. SemiAutomatic
  
- 		Collection<Stage<YourRequest, YourResponse>> stages = ...
+ 		Collection<Stage<YourRequest, YourResponse>> enrichers = ...
 		YourRequest request = ...
 		
 		Workflow<YourRequest, YourResponse, YourStateModel> workflow = new Workflow<YourRequest, YourResponse, YourStateModel>();
 
-		workflow.addAllStages(stages);
-		workflow.addOutput(new ConvertRequestResponseOutputStage<YourRequest, YourResponse>());
+		workflow.addAllEnrichers(enrichers);
+		workflow.addOutputConverter(new ConvertRequestResponseOutputConverter<YourRequest, YourResponse>());
 		
-		Collection<YourStateModel> state = workflow.proceed(request);
+		Collection<YourStateModel> state = workflow.enrich(request);
 		// check state and contiuue processing
 		...
-		Collection<YourStateModel> state = workflow.proceed(request, YourStateModel.STATE_X);
+		Collection<YourStateModel> state = workflow.enrich(request, YourStateModel.STATE_X);
 		
 		// check state - should be final state
 		...

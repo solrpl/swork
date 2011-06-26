@@ -14,9 +14,9 @@ public class SimpleTest {
 	public void boot() {
 		
 		Workflow<BaseInputModel, BaseOutputModel, States> workflow = new Workflow<BaseInputModel, BaseOutputModel, States>();
-		workflow.addStage(new MiddleStepA());
-		workflow.addOutput(new BaseOutputStep());
-		BaseOutputModel output = workflow.process(new BaseInputModel());
+		workflow.addEnricher(new MiddleStepA());
+		workflow.addOutputConverter(new BaseOutputStep());
+		BaseOutputModel output = workflow.enrichAndConvert(new BaseInputModel());
 		assertNotNull(output);
 		
 	}
@@ -25,9 +25,9 @@ public class SimpleTest {
 	public void bootTheSameInputAndOutput() {
 		
 		Workflow<BaseInputModel, BaseInputModel, States> workflow = new Workflow<BaseInputModel, BaseInputModel, States>();
-		workflow.addStage(new MiddleStepA());
-		workflow.addOutput(new ShortCircuitOutputStage<BaseInputModel>());
-		BaseInputModel output = workflow.process(new BaseInputModel());
+		workflow.addEnricher(new MiddleStepA());
+		workflow.addOutputConverter(new ShortCircuitOutputStage<BaseInputModel>());
+		BaseInputModel output = workflow.enrichAndConvert(new BaseInputModel());
 		assertNotNull(output);
 		
 	}
@@ -37,12 +37,12 @@ public class SimpleTest {
 		
 		Workflow<BaseInputModel, BaseInputModel, States> workflow = new Workflow<BaseInputModel, BaseInputModel, States>();
 		workflow.addListener(new SimpleWorkflowListener());
-		workflow.addStage(new MiddleStepC());
-		workflow.addStage(new MiddleStepA());
-		workflow.addStage(new MiddleStepB());
-		workflow.addStage(new MiddleStepD());
-		workflow.addOutput(new ShortCircuitOutputStage<BaseInputModel>());
-		BaseInputModel output = workflow.process(new BaseInputModel());
+		workflow.addEnricher(new MiddleStepC());
+		workflow.addEnricher(new MiddleStepA());
+		workflow.addEnricher(new MiddleStepB());
+		workflow.addEnricher(new MiddleStepD());
+		workflow.addOutputConverter(new ShortCircuitOutputStage<BaseInputModel>());
+		BaseInputModel output = workflow.enrichAndConvert(new BaseInputModel());
 		assertNotNull(output);
 		//TODO order verification by listener
 		
@@ -53,14 +53,14 @@ public class SimpleTest {
 		
 		Workflow<BaseInputModel, BaseOutputModel , States> workflow = new Workflow<BaseInputModel, BaseOutputModel, States>();
 		workflow.addListener(new SimpleWorkflowListener());
-		workflow.addStage(new MiddleStepC());
-		workflow.addStage(new MiddleStepA());
-		workflow.addStage(new MiddleStepD());
-		workflow.addOutput(new BaseOutputStep());
+		workflow.addEnricher(new MiddleStepC());
+		workflow.addEnricher(new MiddleStepA());
+		workflow.addEnricher(new MiddleStepD());
+		workflow.addOutputConverter(new BaseOutputStep());
 		BaseInputModel input = new BaseInputModel();
-		Collection<States> states = workflow.proceed(input);
+		Collection<States> states = workflow.enrich(input);
 		//TODO verify state
-		states = workflow.proceed(input, States.AFTER_B);
+		states = workflow.enrich(input, States.AFTER_B);
 		//TODO verify state
 		BaseOutputModel output = workflow.convert(input);
 		assertNotNull(output);
@@ -70,7 +70,7 @@ public class SimpleTest {
 	
 	public class SimpleWorkflowListener implements WorkflowListener<BaseInputModel, States> {
 
-		public void processedStage(Stage<BaseInputModel, States> stage) {
+		public void processedStage(Enricher<BaseInputModel, States> stage) {
 			System.err.println(stage);
 		}
 		
@@ -84,7 +84,7 @@ public class SimpleTest {
 		AFTER_A, AFTER_B, AFTER_C
 	}
 	
-	public class MiddleStepA implements Stage<BaseInputModel, States> {
+	public class MiddleStepA implements Enricher<BaseInputModel, States> {
 
 		public States[] consumes() {
 			return new States[] {  };
@@ -97,7 +97,7 @@ public class SimpleTest {
 		
 	}
 
-	public class MiddleStepB implements Stage<BaseInputModel, States> {
+	public class MiddleStepB implements Enricher<BaseInputModel, States> {
 
 		public States[] consumes() {
 			return new States[] { States.AFTER_A };
@@ -110,7 +110,7 @@ public class SimpleTest {
 	
 	}
 	
-	public class MiddleStepC implements Stage<BaseInputModel, States> {
+	public class MiddleStepC implements Enricher<BaseInputModel, States> {
 
 		public States[] consumes() {
 			return new States[] {  States.AFTER_A,  States.AFTER_B};
@@ -123,7 +123,7 @@ public class SimpleTest {
 	
 	}
 
-	public class MiddleStepD implements Stage<BaseInputModel, States> {
+	public class MiddleStepD implements Enricher<BaseInputModel, States> {
 
 		public States[] consumes() {
 			return new States[] { States.AFTER_B };
@@ -136,7 +136,7 @@ public class SimpleTest {
 			
 	}
 	
-	public class BaseOutputStep implements OutputStage<BaseInputModel, BaseOutputModel> {
+	public class BaseOutputStep implements OutputConverter<BaseInputModel, BaseOutputModel> {
 
 		public BaseOutputModel process(BaseInputModel model) {
 			return new BaseOutputModel();
