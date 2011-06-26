@@ -6,6 +6,7 @@ import java.util.Collection;
 
 import org.junit.Test;
 
+import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
 
 public class SimpleTest {
@@ -68,6 +69,34 @@ public class SimpleTest {
 		
 	}
 	
+	@Test
+	public void bootSubWorkflow() {
+		
+		Workflow<BaseInputModel, BaseInputModel, States> workflowA = new Workflow<BaseInputModel, BaseInputModel, States>();
+		workflowA.addListener(new SimpleWorkflowListener());
+		workflowA.addEnricher(new MiddleStepC());
+		workflowA.addEnricher(new MiddleStepA());
+		workflowA.addEnricher(new MiddleStepB());
+		workflowA.addEnricher(new MiddleStepD());
+		
+		Workflow<BaseInputModel, BaseInputModel, States> workflowB = new Workflow<BaseInputModel, BaseInputModel, States>();
+		workflowB.addListener(new SimpleWorkflowListener());
+		workflowB.addEnricher(new MiddleStepC());
+		workflowB.addEnricher(new MiddleStepA());
+		workflowB.addEnricher(new MiddleStepB());
+		workflowB.addEnricher(new MiddleStepD());
+		
+		workflowA.addOutputConverter(new ShortCircuitOutputStage<BaseInputModel>());
+		workflowB.addOutputConverter(new ShortCircuitOutputStage<BaseInputModel>());
+		
+		workflowA.addEnricher(workflowB);
+		BaseInputModel output = workflowA.enrichAndConvert(new BaseInputModel());
+		assertNotNull(output);
+		//TODO order verification by listener
+		
+	}
+
+		
 	public class SimpleWorkflowListener implements WorkflowListener<BaseInputModel, States> {
 
 		public void processedStage(Enricher<BaseInputModel, States> stage) {

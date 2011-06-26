@@ -1,19 +1,21 @@
 package pl.solr.swork;
 
 import java.util.Collection;
+import java.util.Set;
 
 import com.google.common.base.Joiner;
 import com.google.common.collect.Lists;
+import com.google.common.collect.Sets;
 
 public class WorkflowState<StateModel> {
 
-	private Collection<StateModel> current = Lists.newArrayList();
+	private Set<StateModel> current = Sets.newHashSet();
 	
 	/** maintains state for current loop, because state should not be changed during loop. */
-	private Collection<StateModel> tempState = Lists.newArrayList();
+	private Set<StateModel> tempState = Sets.newHashSet();
 
 	public boolean compatible(StateModel[] stateModels) {
-		if (current.containsAll(Lists.newArrayList(stateModels))) {
+		if (stateModels == null || current.containsAll(Lists.newArrayList(stateModels))) {
 			return true;
 		}
 		return false;

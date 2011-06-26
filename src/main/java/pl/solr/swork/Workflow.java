@@ -17,7 +17,7 @@ import com.google.common.collect.Lists;
  * @param <OutputModel> class used as output information from the workflow
  * @param <StateModel> possible states for the workflow
  */
-public class Workflow<InputModel, OutputModel, StateModel> {
+public class Workflow<InputModel, OutputModel, StateModel> implements Enricher<InputModel, StateModel>{
 	/** remaining enrichers in workflow. */
 	private Collection<Enricher<InputModel, StateModel>> waitingEnrichers = Lists.newArrayList();
 	
@@ -40,6 +40,10 @@ public class Workflow<InputModel, OutputModel, StateModel> {
 	private static final Logger LOG = LoggerFactory.getLogger(Workflow.class);
 	
 	
+	public StateModel[] consumes() {
+		return null;
+	}
+
 	public Collection<StateModel> enrich(final InputModel input) {
 		int i = 1;
 		while(true) {
