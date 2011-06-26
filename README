@@ -24,7 +24,7 @@ There are two base definitions:
 		workflow.addAllEnrichers(enrichers);
 		workflow.addOutputConverter(new ConvertRequestResponseOutputConverter<YourRequest, YourResponse>());
 		
-		YourResponse response = workflow.process(request);
+		YourResponse response = workflow.enrichAndConvert(request);
 
 
  2. SemiAutomatic
