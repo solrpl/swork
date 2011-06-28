@@ -14,7 +14,7 @@ public class WorkflowState<StateModel> {
 	/** maintains state for current loop, because state should not be changed during loop. */
 	private Set<StateModel> tempState = Sets.newHashSet();
 
-	public boolean compatible(StateModel[] stateModels) {
+	public boolean compatible(Collection<StateModel> stateModels) {
 		if (stateModels == null || current.containsAll(Lists.newArrayList(stateModels))) {
 			return true;
 		}

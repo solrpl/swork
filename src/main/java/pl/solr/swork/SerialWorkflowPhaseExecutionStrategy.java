@@ -20,6 +20,7 @@ public class SerialWorkflowPhaseExecutionStrategy<InputModel, StateModel> implem
 			Collection<WorkflowListener<InputModel, StateModel>> listeners) {
 		Collection<StateModel> states = Lists.newArrayList();
 		for (Enricher<InputModel, StateModel> stage : toExecute) {
+			stage.validate(input); 
 			states.addAll(stage.enrich(input));
 			for (WorkflowListener<InputModel, StateModel> listener : listeners) {
 				listener.processedStage(stage);

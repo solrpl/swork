@@ -10,7 +10,7 @@ import com.google.common.collect.Lists;
 
 /**
  * The main entry class for workflow operations.
- * 
+ *
  * @author Marek Rogoziński
  *
  * @param <InputModel> class used as input information to the workflow
@@ -20,33 +20,40 @@ import com.google.common.collect.Lists;
 public class Workflow<InputModel, OutputModel, StateModel> implements Enricher<InputModel, StateModel>{
 	/** remaining enrichers in workflow. */
 	private Collection<Enricher<InputModel, StateModel>> waitingEnrichers = Lists.newArrayList();
-	
+
 	/** processed enrichers in workflow. */
 	private Collection<Enricher<InputModel, StateModel>> executedEnrichers = Lists.newArrayList();
 
 	/** output processors for conversion from input model to output model. */
 	private Collection<OutputConverter<InputModel, OutputModel>> outputConverters = Lists.newArrayList();
-	
+
 	/** current state for workflow. */
 	private WorkflowState<StateModel> state = new WorkflowState<StateModel>();
 
 	/** listeners for worflow events. */
 	private Collection<WorkflowListener<InputModel, StateModel>> listeners = Lists.newArrayList();
-	
+
 	/** execution strategy for enrichers. */
 	private WorkflowPhaseExecutionStrategy<InputModel, StateModel> workflowPhaseExecutionStrategy = new SerialWorkflowPhaseExecutionStrategy<InputModel, StateModel>(); 
-	
+
+	/** item of consumed states calculated from enclosed enrichers for using of workflow like enricher. */
+	private Collection<StateModel> consumesList = Lists.newArrayList();
+
 	/** logger. */
 	private static final Logger LOG = LoggerFactory.getLogger(Workflow.class);
-	
-	
-	public StateModel[] consumes() {
-		return null;
+
+
+	public Collection<StateModel> consumes() {
+		return Lists.newArrayList();
+	}
+
+	public void validate(InputModel input) throws EnrichException {
+
 	}
 
 	public Collection<StateModel> enrich(final InputModel input) {
 		int i = 1;
-		while(true) {
+		while (true) {
 			int executed = processEnrichers(input);
 			LOG.debug("Processed workflow pass: " + i + " " + state);
 			i++;
@@ -56,12 +63,12 @@ public class Workflow<InputModel, OutputModel, StateModel> implements Enricher<I
 		}
 		return state.getState();
 	}
-	
+
 	public Collection<StateModel> enrich(final InputModel input, final StateModel model) {
 		state.add(model).commit();
 		return enrich(input);
 	}
-	
+
 	public OutputModel convert(final InputModel input) {
 		if (waitingEnrichers.size() != 0) {
 			errorNotEmpty();
@@ -69,17 +76,17 @@ public class Workflow<InputModel, OutputModel, StateModel> implements Enricher<I
 		return processOutputConverters(input);
 	}
 
-	
+
 	/**
 	 * Main method for processing argument by the workflow.
 	 * @param input input argument
 	 * @return object returned by workflow
 	 */
-	public OutputModel enrichAndConvert(final InputModel input) {		
+	public OutputModel enrichAndConvert(final InputModel input) {
 		if (outputConverters.size() == 0) {
 			throw new RuntimeException("Workflow should contain outputConverters");
 		}
-		
+
 		enrich(input);
 		return convert(input);
 	}
@@ -100,12 +107,15 @@ public class Workflow<InputModel, OutputModel, StateModel> implements Enricher<I
 	}
 	
 	public Workflow<InputModel, OutputModel, StateModel> addEnricher(final Enricher<InputModel, StateModel> enricher) {
+		this.consumesList.addAll(enricher.consumes());
 		this.waitingEnrichers.add(enricher);
 		return this;
 	}
 	
 	public Workflow<InputModel, OutputModel, StateModel> addAllEnrichers(final Collection<Enricher<InputModel, StateModel>> enrichers) {
-		this.waitingEnrichers.addAll(enrichers);
+		for(Enricher<InputModel, StateModel> enricher : enrichers) {
+			addEnricher(enricher);
+		}
 		return this;
 	}
 	
@@ -142,5 +152,6 @@ public class Workflow<InputModel, OutputModel, StateModel> implements Enricher<I
 		}
 		throw new RuntimeException("Not output converter.");
 	}
+
 
 }

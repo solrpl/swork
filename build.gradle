@@ -1,9 +1,12 @@
 apply plugin: 'java'
 apply plugin: 'maven'
 apply plugin: 'eclipse'
+apply plugin: 'code-quality'
 
 version = '1.0.5-SNAPSHOT'
 group = 'pl.solr.swork'
+
+checkstyleConfigFileName = rootProject.file('checkstyle.xml')
 
 repositories {
     mavenLocal()
