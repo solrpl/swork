@@ -1,9 +1,10 @@
 package pl.solr.swork;
 
-import static org.junit.Assert.assertNotNull;
+import static org.junit.Assert.*;
 
 import java.util.ArrayList;
 import java.util.Collection;
+import java.util.List;
 
 import org.junit.Test;
 
@@ -15,21 +16,28 @@ public class SimpleTest {
 	public void boot() {
 
 		Workflow<BaseInputModel, BaseOutputModel, States> workflow = new Workflow<BaseInputModel, BaseOutputModel, States>();
-		workflow.addEnricher(new MiddleStepA());
+		SimpleWorkflowListener listener = new SimpleWorkflowListener();
+		MiddleStep a = new MiddleStepA();
+		workflow.addListener(listener);
+		workflow.addEnricher(a);
 		workflow.addOutputConverter(new BaseOutputStep());
 		BaseOutputModel output = workflow.enrichAndConvert(new BaseInputModel());
 		assertNotNull(output);
-
+		listener.assertCalled(Lists.newArrayList(a));
 	}
 
 	@Test
 	public void bootTheSameInputAndOutput() {
 
 		Workflow<BaseInputModel, BaseInputModel, States> workflow = new Workflow<BaseInputModel, BaseInputModel, States>();
-		workflow.addEnricher(new MiddleStepA());
+		MiddleStep a = new MiddleStepA();
+		SimpleWorkflowListener listener = new SimpleWorkflowListener();
+		workflow.addListener(listener);
+		workflow.addEnricher(a);
 		workflow.addOutputConverter(new ShortCircuitOutputStage<BaseInputModel>());
 		BaseInputModel output = workflow.enrichAndConvert(new BaseInputModel());
 		assertNotNull(output);
+		listener.assertCalled(Lists.newArrayList(a));
 
 	}
 
@@ -37,15 +45,21 @@ public class SimpleTest {
 	public void bootMultipleSteps() {
 
 		Workflow<BaseInputModel, BaseInputModel, States> workflow = new Workflow<BaseInputModel, BaseInputModel, States>();
-		workflow.addListener(new SimpleWorkflowListener());
-		workflow.addEnricher(new MiddleStepC());
-		workflow.addEnricher(new MiddleStepA());
-		workflow.addEnricher(new MiddleStepB());
-		workflow.addEnricher(new MiddleStepD());
+		SimpleWorkflowListener listener = new SimpleWorkflowListener();
+		MiddleStep a = new MiddleStepA();
+		MiddleStep b = new MiddleStepB();
+		MiddleStep c = new MiddleStepC();
+		MiddleStep d = new MiddleStepD();
+
+		workflow.addListener(listener);
+		workflow.addEnricher(c);
+		workflow.addEnricher(a);
+		workflow.addEnricher(b);
+		workflow.addEnricher(d);
 		workflow.addOutputConverter(new ShortCircuitOutputStage<BaseInputModel>());
 		BaseInputModel output = workflow.enrichAndConvert(new BaseInputModel());
 		assertNotNull(output);
-		//TODO order verification by listener
+		listener.assertCalled(Lists.newArrayList(a, b, c, d));
 
 	}
 
@@ -53,38 +67,53 @@ public class SimpleTest {
 	public void bootMultipleStepsWithExternal() {
 
 		Workflow<BaseInputModel, BaseOutputModel , States> workflow = new Workflow<BaseInputModel, BaseOutputModel, States>();
-		workflow.addListener(new SimpleWorkflowListener());
-		workflow.addEnricher(new MiddleStepC());
-		workflow.addEnricher(new MiddleStepA());
-		workflow.addEnricher(new MiddleStepD());
+		SimpleWorkflowListener listener = new SimpleWorkflowListener();
+		MiddleStep a = new MiddleStepA();
+		MiddleStep c = new MiddleStepC();
+		MiddleStep d = new MiddleStepD();
+
+		workflow.addListener(listener);
+		workflow.addEnricher(c);
+		workflow.addEnricher(a);
+		workflow.addEnricher(d);
 		workflow.addOutputConverter(new BaseOutputStep());
 		BaseInputModel input = new BaseInputModel();
 		Collection<States> states = workflow.enrich(input);
-		//TODO verify state
+		assertArrayEquals(new States[]{States.AFTER_A}, states.toArray());
+		listener.assertCalled(Lists.newArrayList(a));
+
 		states = workflow.enrich(input, States.AFTER_B);
-		//TODO verify state
+		assertEquals(3, states.size());
+
+		listener.assertCalled(Lists.newArrayList(c, d));
 		BaseOutputModel output = workflow.convert(input);
 		assertNotNull(output);
-		//TODO order verification by listener
-
 	}
 
 	@Test
 	public void bootSubWorkflow() {
+		SimpleWorkflowListener listenerA = new SimpleWorkflowListener();
+		SimpleWorkflowListener listenerB = new SimpleWorkflowListener();
+		MiddleStep a = new MiddleStepA();
+		MiddleStep b = new MiddleStepB();
+		MiddleStep c = new MiddleStepC();
+		MiddleStep d = new MiddleStepD();
 
 		Workflow<BaseInputModel, BaseInputModel, States> workflowA = new Workflow<BaseInputModel, BaseInputModel, States>();
-		workflowA.addListener(new SimpleWorkflowListener());
-		workflowA.addEnricher(new MiddleStepC());
-		workflowA.addEnricher(new MiddleStepA());
-		workflowA.addEnricher(new MiddleStepB());
-		workflowA.addEnricher(new MiddleStepD());
+
+		workflowA.addListener(listenerA);
+
+		workflowA.addEnricher(c);
+		workflowA.addEnricher(a);
+		workflowA.addEnricher(b);
+		workflowA.addEnricher(d);
 
 		Workflow<BaseInputModel, BaseInputModel, States> workflowB = new Workflow<BaseInputModel, BaseInputModel, States>();
-		workflowB.addListener(new SimpleWorkflowListener());
-		workflowB.addEnricher(new MiddleStepC());
-		workflowB.addEnricher(new MiddleStepA());
-		workflowB.addEnricher(new MiddleStepB());
-		workflowB.addEnricher(new MiddleStepD());
+		workflowB.addListener(listenerB);
+		workflowB.addEnricher(c);
+		workflowB.addEnricher(a);
+		workflowB.addEnricher(b);
+		workflowB.addEnricher(d);
 
 		workflowA.addOutputConverter(new ShortCircuitOutputStage<BaseInputModel>());
 		workflowB.addOutputConverter(new ShortCircuitOutputStage<BaseInputModel>());
@@ -92,15 +121,23 @@ public class SimpleTest {
 		workflowA.addEnricher(workflowB);
 		BaseInputModel output = workflowA.enrichAndConvert(new BaseInputModel());
 		assertNotNull(output);
-		//TODO order verification by listener
+		listenerA.assertCalled(Lists.newArrayList(a, workflowB, c, b, d));
+		listenerB.assertCalled(Lists.newArrayList(a, b, c, d));
 
 	}
 
 
 	public class SimpleWorkflowListener implements WorkflowListener<BaseInputModel, States> {
-
-		public void processedStage(Enricher<BaseInputModel, States> stage) {
+		private List<Enricher<BaseInputModel, States>> called = Lists.newArrayList();
+		
+		public void processedEnricher(Enricher<BaseInputModel, States> stage) {
+			called.add(stage);
 			System.err.println(stage);
+		}
+
+		public void assertCalled(List<? extends Enricher<BaseInputModel, States>> list) {
+			assertArrayEquals(list.toArray(), called.toArray());
+			called.clear();
 		}
 
 	}

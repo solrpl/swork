@@ -6,7 +6,7 @@ import com.google.common.collect.Lists;
 
 /**
  * Serial execution of selected stages.
- * 
+ *
  * @author Marek Rogoziński
  *
  * @param <InputModel> input type
@@ -20,14 +20,14 @@ public class SerialWorkflowPhaseExecutionStrategy<InputModel, StateModel> implem
 			Collection<WorkflowListener<InputModel, StateModel>> listeners) {
 		Collection<StateModel> states = Lists.newArrayList();
 		for (Enricher<InputModel, StateModel> stage : toExecute) {
-			stage.validate(input); 
+			stage.validate(input); //TODO: strategy when validation fails.
 			states.addAll(stage.enrich(input));
 			for (WorkflowListener<InputModel, StateModel> listener : listeners) {
-				listener.processedStage(stage);
+				listener.processedEnricher(stage);
 			}
 		}
 		return states;
-		
+
 	}
 
 }
