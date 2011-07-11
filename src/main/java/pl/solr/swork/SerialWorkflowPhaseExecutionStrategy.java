@@ -15,7 +15,7 @@ import com.google.common.collect.Lists;
 public class SerialWorkflowPhaseExecutionStrategy<InputModel, StateModel> implements
 		WorkflowPhaseExecutionStrategy<InputModel, StateModel> {
 
-	public Collection<StateModel> execute(final Collection<Enricher<InputModel, StateModel>> toExecute, 
+	public Collection<StateModel> execute(final Collection<Enricher<InputModel, StateModel>> toExecute,
 			InputModel input,
 			Collection<WorkflowListener<InputModel, StateModel>> listeners) {
 		Collection<StateModel> states = Lists.newArrayList();

@@ -10,11 +10,11 @@ import com.google.common.collect.Sets;
 public class WorkflowState<StateModel> {
 
 	private Set<StateModel> current = Sets.newHashSet();
-	
+
 	/** maintains state for current loop, because state should not be changed during loop. */
 	private Set<StateModel> tempState = Sets.newHashSet();
 
-	public boolean compatible(Collection<StateModel> stateModels) {
+	public final boolean compatible(final Collection<StateModel> stateModels) {
 		if (stateModels == null || current.containsAll(Lists.newArrayList(stateModels))) {
 			return true;
 		}
@@ -26,21 +26,21 @@ public class WorkflowState<StateModel> {
 		return this;
 	}
 
-	public WorkflowState<StateModel> add(final StateModel state) {
+	public final WorkflowState<StateModel> add(final StateModel state) {
 		tempState.add(state);
 		return this;
 	}
-	
-	
-	public void commit() {
+
+
+	public final void commit() {
 		current.addAll(tempState);
-		tempState.clear();		
+		tempState.clear();
 	}
-	
-	public Collection<StateModel> getState() {
+
+	public final Collection<StateModel> getState() {
 		return Lists.newArrayList(current);
 	}
-	
+
 	@Override
 	public String toString() {
 		return "WorkflowState: [" + Joiner.on(",").join(current) + "]";

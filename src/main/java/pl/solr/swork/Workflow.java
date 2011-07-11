@@ -17,7 +17,7 @@ import com.google.common.collect.Lists;
  * @param <OutputModel> class used as output information from the workflow
  * @param <StateModel> possible states for the workflow
  */
-public class Workflow<InputModel, OutputModel, StateModel> implements Enricher<InputModel, StateModel>{
+public class Workflow<InputModel, OutputModel, StateModel> implements Enricher<InputModel, StateModel> {
 	/** remaining enrichers in workflow. */
 	private Collection<Enricher<InputModel, StateModel>> waitingEnrichers = Lists.newArrayList();
 
@@ -34,7 +34,8 @@ public class Workflow<InputModel, OutputModel, StateModel> implements Enricher<I
 	private Collection<WorkflowListener<InputModel, StateModel>> listeners = Lists.newArrayList();
 
 	/** execution strategy for enrichers. */
-	private WorkflowPhaseExecutionStrategy<InputModel, StateModel> workflowPhaseExecutionStrategy = new SerialWorkflowPhaseExecutionStrategy<InputModel, StateModel>(); 
+	private WorkflowPhaseExecutionStrategy<InputModel, StateModel> workflowPhaseExecutionStrategy =
+			new SerialWorkflowPhaseExecutionStrategy<InputModel, StateModel>();
 
 	/** item of consumed states calculated from enclosed enrichers for using of workflow like enricher. */
 	private Collection<StateModel> consumesList = Lists.newArrayList();
@@ -90,7 +91,7 @@ public class Workflow<InputModel, OutputModel, StateModel> implements Enricher<I
 		enrich(input);
 		return convert(input);
 	}
-	
+
 	private void errorNotEmpty() {
 		StringBuilder waitingList = new StringBuilder();
 		for (Enricher<InputModel, StateModel> enricher : waitingEnrichers) {
@@ -103,32 +104,47 @@ public class Workflow<InputModel, OutputModel, StateModel> implements Enricher<I
 		}
 		LOG.error("Not every enricher of workflow was executed.\n"
 				+ "The following enricher are waiting:\n" + waitingList);
-		throw new RuntimeException("Not every enricher executed.");									
+		throw new RuntimeException("Not every enricher executed.");
 	}
-	
-	public Workflow<InputModel, OutputModel, StateModel> addEnricher(final Enricher<InputModel, StateModel> enricher) {
+
+	public Workflow<InputModel, OutputModel, StateModel> addEnricher(
+			final Enricher<InputModel, StateModel> enricher) {
 		this.consumesList.addAll(enricher.consumes());
 		this.waitingEnrichers.add(enricher);
 		return this;
 	}
-	
-	public Workflow<InputModel, OutputModel, StateModel> addAllEnrichers(final Collection<Enricher<InputModel, StateModel>> enrichers) {
-		for(Enricher<InputModel, StateModel> enricher : enrichers) {
+
+	public Workflow<InputModel, OutputModel, StateModel> addAllEnrichers(
+			final Collection<Enricher<InputModel, StateModel>> enrichers) {
+		for (Enricher<InputModel, StateModel> enricher : enrichers) {
 			addEnricher(enricher);
 		}
 		return this;
 	}
-	
-	public Workflow<InputModel, OutputModel, StateModel> addOutputConverter(OutputConverter<InputModel, OutputModel> output) {
+
+	public void setEnrichers(
+			final Collection<Enricher<InputModel, StateModel>> enrichers) {
+		clear();
+		addAllEnrichers(enrichers);
+	}
+
+	public void clear() {
+		this.consumesList.clear();
+		this.waitingEnrichers.clear();
+	}
+
+	public Workflow<InputModel, OutputModel, StateModel> addOutputConverter(
+			OutputConverter<InputModel, OutputModel> output) {
 		this.outputConverters.add(output);
 		return this;
 	}
-	
-	public Workflow<InputModel, OutputModel, StateModel> addListener(WorkflowListener<InputModel, StateModel> listener) {
+
+	public Workflow<InputModel, OutputModel, StateModel> addListener(
+			WorkflowListener<InputModel, StateModel> listener) {
 		this.listeners .add(listener);
 		return this;
 	}
-	
+
 	private int processEnrichers(InputModel input) {
 		Collection<Enricher<InputModel, StateModel>> toExecute = Lists.newArrayList();
 		for (Enricher<InputModel, StateModel> s : waitingEnrichers) {

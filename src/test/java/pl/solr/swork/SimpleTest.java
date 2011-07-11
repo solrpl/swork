@@ -15,7 +15,8 @@ public class SimpleTest {
 	@Test
 	public void boot() {
 
-		Workflow<BaseInputModel, BaseOutputModel, States> workflow = new Workflow<BaseInputModel, BaseOutputModel, States>();
+		Workflow<BaseInputModel, BaseOutputModel, States> workflow =
+				new Workflow<BaseInputModel, BaseOutputModel, States>();
 		SimpleWorkflowListener listener = new SimpleWorkflowListener();
 		MiddleStep a = new MiddleStepA();
 		workflow.addListener(listener);
@@ -29,7 +30,8 @@ public class SimpleTest {
 	@Test
 	public void bootTheSameInputAndOutput() {
 
-		Workflow<BaseInputModel, BaseInputModel, States> workflow = new Workflow<BaseInputModel, BaseInputModel, States>();
+		Workflow<BaseInputModel, BaseInputModel, States> workflow =
+				new Workflow<BaseInputModel, BaseInputModel, States>();
 		MiddleStep a = new MiddleStepA();
 		SimpleWorkflowListener listener = new SimpleWorkflowListener();
 		workflow.addListener(listener);
@@ -44,7 +46,8 @@ public class SimpleTest {
 	@Test
 	public void bootMultipleSteps() {
 
-		Workflow<BaseInputModel, BaseInputModel, States> workflow = new Workflow<BaseInputModel, BaseInputModel, States>();
+		Workflow<BaseInputModel, BaseInputModel, States> workflow =
+				new Workflow<BaseInputModel, BaseInputModel, States>();
 		SimpleWorkflowListener listener = new SimpleWorkflowListener();
 		MiddleStep a = new MiddleStepA();
 		MiddleStep b = new MiddleStepB();
@@ -66,7 +69,8 @@ public class SimpleTest {
 	@Test
 	public void bootMultipleStepsWithExternal() {
 
-		Workflow<BaseInputModel, BaseOutputModel , States> workflow = new Workflow<BaseInputModel, BaseOutputModel, States>();
+		Workflow<BaseInputModel, BaseOutputModel , States> workflow =
+				new Workflow<BaseInputModel, BaseOutputModel, States>();
 		SimpleWorkflowListener listener = new SimpleWorkflowListener();
 		MiddleStep a = new MiddleStepA();
 		MiddleStep c = new MiddleStepC();
@@ -99,7 +103,8 @@ public class SimpleTest {
 		MiddleStep c = new MiddleStepC();
 		MiddleStep d = new MiddleStepD();
 
-		Workflow<BaseInputModel, BaseInputModel, States> workflowA = new Workflow<BaseInputModel, BaseInputModel, States>();
+		Workflow<BaseInputModel, BaseInputModel, States> workflowA =
+				new Workflow<BaseInputModel, BaseInputModel, States>();
 
 		workflowA.addListener(listenerA);
 
@@ -108,7 +113,8 @@ public class SimpleTest {
 		workflowA.addEnricher(b);
 		workflowA.addEnricher(d);
 
-		Workflow<BaseInputModel, BaseInputModel, States> workflowB = new Workflow<BaseInputModel, BaseInputModel, States>();
+		Workflow<BaseInputModel, BaseInputModel, States> workflowB =
+				new Workflow<BaseInputModel, BaseInputModel, States>();
 		workflowB.addListener(listenerB);
 		workflowB.addEnricher(c);
 		workflowB.addEnricher(a);
@@ -129,7 +135,7 @@ public class SimpleTest {
 
 	public class SimpleWorkflowListener implements WorkflowListener<BaseInputModel, States> {
 		private List<Enricher<BaseInputModel, States>> called = Lists.newArrayList();
-		
+
 		public void processedEnricher(Enricher<BaseInputModel, States> stage) {
 			called.add(stage);
 			System.err.println(stage);
@@ -196,7 +202,8 @@ public class SimpleTest {
 	public class MiddleStepC extends MiddleStep {
 
 		public MiddleStepC() {
-			super("C", Lists.newArrayList(States.AFTER_A,  States.AFTER_B), Lists.newArrayList(States.AFTER_C));
+			super("C", Lists.newArrayList(States.AFTER_A,  States.AFTER_B),
+					Lists.newArrayList(States.AFTER_C));
 		}
 
 	}
