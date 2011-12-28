@@ -3,7 +3,7 @@ apply plugin: 'maven'
 apply plugin: 'eclipse'
 apply plugin: 'code-quality'
 
-version = '1.0.6-SNAPSHOT'
+version = '1.0.7-SNAPSHOT'
 group = 'pl.solr.swork'
 
 checkstyleConfigFileName = rootProject.file('checkstyle.xml')
